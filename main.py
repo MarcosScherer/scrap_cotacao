@@ -1,8 +1,12 @@
 from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from scraper2 import run_scraper
+from imagem import ImageTextEditor
 
 app = FastAPI()
+
+IMAGE_PATH = "templates/preco_p.png"
 
 
 class ScraperInput(BaseModel):
@@ -33,6 +37,11 @@ class ScraperInput(BaseModel):
     comissao: float
 
 
+class ImageInput(BaseModel):
+    preco_1: str
+    preco_2: str
+
+
 @app.get("/")
 def home():
     return {"status": "ok"}
@@ -47,3 +56,14 @@ def run_scraper_endpoint(data: ScraperInput):
         "entrada": data.model_dump(),
         "saida": resultado
     }
+
+@app.post("/gerar-imagem")
+def gerar_imagem(data: ImageInput):
+    editor = ImageTextEditor(IMAGE_PATH)
+    image_bytes = editor.get_image_bytes(data.preco_1, data.preco_2)
+
+    return StreamingResponse(
+        image_bytes,
+        media_type="image/png",
+        headers={"Content-Disposition": "inline; filename=preco.png"}
+    )
