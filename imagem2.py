@@ -4,7 +4,7 @@ from io import BytesIO
 
 
 IMAGE_PATH = "templates/preco_p.png"
-
+OUTPUT_PATH = "teste_saida.png"
 
 
 class ImageTextEditor:
@@ -44,16 +44,15 @@ class ImageTextEditor:
 
     def process_image(self, preco_1, preco_2):
         # esquerda
-        self.add_centered_text(preco_1, x_min=290, x_max=640, y=355, font_size=29)
+        self.add_centered_text(preco_1, x_min=330, x_max=640, y=370, font_size=42)
 
         # direita
-        self.add_centered_text(preco_2, x_min=670, x_max=1020, y=355, font_size=29)
+        self.add_centered_text(preco_2, x_min=710, x_max=1020, y=370, font_size=42)
+
+        self.image.save(OUTPUT_PATH)
+        print(f"Imagem salva em: {OUTPUT_PATH}")
 
 
-    def get_image_bytes(self, preco_1, preco_2):
-        self.process_image(preco_1, preco_2)
-
-        buffer = BytesIO()
-        self.image.save(buffer, format="PNG")
-        buffer.seek(0)
-        return buffer
+if __name__ == "__main__":
+    editor = ImageTextEditor(IMAGE_PATH)
+    editor.process_image("R$ 39,90", "R$ 59,90")
