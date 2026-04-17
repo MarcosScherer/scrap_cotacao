@@ -17,8 +17,6 @@ class ImageTextEditor:
 
     def load_font(self, font_size: int = 80):
         font_candidates = [
-            "C:/Windows/Fonts/arialbd.ttf",
-            "C:/Windows/Fonts/arial.ttf",
             "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         ]
@@ -26,11 +24,12 @@ class ImageTextEditor:
         for font_path in font_candidates:
             if os.path.exists(font_path):
                 try:
+                    print(f"Usando fonte: {font_path}")
                     return ImageFont.truetype(font_path, font_size)
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f"Erro ao carregar fonte {font_path}: {e}")
 
-        return ImageFont.load_default()
+        raise FileNotFoundError("Nenhuma fonte válida encontrada no Linux.")
 
     def add_centered_text(self, text, x_min, x_max, y, font_size=60, fill="white"):
         text = str(text)
