@@ -15,17 +15,23 @@ class ImageTextEditor:
         self.image = Image.open(image_path).convert("RGBA")
         self.draw = ImageDraw.Draw(self.image)
 
-    def load_font(self, font_size: int = 80, bold: bool = True):
-        font_path = (
-            "/app/fonts/Montserrat-ExtraBold.ttf"
-            if bold
-            else "/app/fonts/Montserrat-Regular.ttf"
-        )
+    def load_font(self, font_size: int = 80):
+        font_candidates = [
+            "/usr/share/fonts/truetype/montserrat/Montserrat-ExtraBold.ttf",
+            "/usr/share/fonts/truetype/montserrat/Montserrat-Bold.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        ]
 
-        if not os.path.exists(font_path):
-            raise FileNotFoundError(f"Fonte não encontrada: {font_path}")
+        for font_path in font_candidates:
+            if os.path.exists(font_path):
+                try:
+                    print(f"Usando fonte: {font_path}")
+                    return ImageFont.truetype(font_path, font_size)
+                except Exception as e:
+                    print(f"Erro ao carregar fonte {font_path}: {e}")
 
-        return ImageFont.truetype(font_path, font_size)
+        raise FileNotFoundError("Nenhuma fonte válida encontrada no Linux.")
 
     def add_centered_text(self, text, x_min, x_max, y, font_size=60, fill="white"):
         text = str(text)
