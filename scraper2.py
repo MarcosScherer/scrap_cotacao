@@ -7,7 +7,7 @@ import queue
 import traceback
 
 class BradescoScraper:
-    def __init__(self, headless: bool = False):
+    def __init__(self, headless: bool = True):
         self.headless = headless
         self.playwright: Playwright | None = None
         self.browser: Browser | None = None
