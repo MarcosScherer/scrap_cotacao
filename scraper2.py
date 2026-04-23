@@ -2,9 +2,12 @@ from playwright.sync_api import sync_playwright, Page, Browser, Playwright
 from time import sleep
 import re
 import time
+import multiprocessing as mp
+import queue
+import traceback
 
 class BradescoScraper:
-    def __init__(self, headless: bool = True):
+    def __init__(self, headless: bool = False):
         self.headless = headless
         self.playwright: Playwright | None = None
         self.browser: Browser | None = None
@@ -65,6 +68,7 @@ class BradescoScraper:
 
         self.page.wait_for_timeout(10000)
         print("7 - Esperou 10 segundos após login")
+        sleep(245)
 
     def clicar_re(self) -> None:
         if not self.page:
@@ -83,18 +87,24 @@ class BradescoScraper:
         if not self.page:
             raise RuntimeError("A página não foi iniciada. Chame start() antes.")
 
-        modal = self.page.locator("div.modal[role='dialog']:visible").last
-        botao = modal.locator("div.modal-header button.close")
-
         print("60 - Tentando fechar pop-up")
-        modal.wait_for(state="visible", timeout=20000)
-        botao.wait_for(state="visible", timeout=20000)
-        botao.scroll_into_view_if_needed()
-        botao.click(force=True)
 
-        print("61 - Pop-up fechado")
-        self.page.wait_for_timeout(2000)
-        sleep(self.timesleep)
+        try:
+            modal = self.page.locator("div.modal[role='dialog']:visible").last
+            botao = modal.locator("div.modal-header button.close")
+
+            modal.wait_for(state="visible", timeout=5000)
+            botao.wait_for(state="visible", timeout=5000)
+            botao.scroll_into_view_if_needed()
+            botao.click(force=True)
+
+            print("61 - Pop-up fechado")
+            self.page.wait_for_timeout(2000)
+            sleep(self.timesleep)
+
+        except Exception:
+            print("61 - Pop-up não apareceu ou não foi possível fechar. Seguindo o fluxo...")
+            pass
     
     def aceitar_cookies(self) -> None:
         if not self.page:
@@ -650,6 +660,62 @@ class BradescoScraper:
 
         valor_limpo = valor.strip().replace(".", "").replace(",", "")
         return float(valor_limpo[:-2] + "." + valor_limpo[-2:])
+    
+
+#######################################################################################
+# Timeout Global
+#######################################################################################
+
+
+def _worker_run_scraper(data, result_queue):
+    try:
+        resultado = run_scraper(data)
+        result_queue.put({
+            "ok": True,
+            "resultado": resultado
+        })
+    except Exception as e:
+        result_queue.put({
+            "ok": False,
+            "erro": str(e),
+            "traceback": traceback.format_exc()
+        })
+
+
+def run_scraper_com_timeout(data, timeout_segundos: int = 240):
+    result_queue = mp.Queue()
+    processo = mp.Process(
+        target=_worker_run_scraper,
+        args=(data, result_queue),
+        daemon=True
+    )
+
+    processo.start()
+    processo.join(timeout_segundos)
+
+    if processo.is_alive():
+        print(f"Tempo limite de {timeout_segundos}s excedido. Encerrando processo...")
+        processo.terminate()
+        processo.join(10)
+
+        if processo.is_alive():
+            print("Processo ainda vivo após terminate(). Forçando kill...")
+            processo.kill()
+            processo.join()
+
+        raise TimeoutError(f"O scraper excedeu o tempo máximo de {timeout_segundos} segundos.")
+
+    try:
+        resposta = result_queue.get_nowait()
+    except queue.Empty:
+        raise RuntimeError("O processo terminou sem retornar resultado.")
+
+    if resposta["ok"]:
+        return resposta["resultado"]
+
+    raise RuntimeError(
+        f'Erro no scraper: {resposta["erro"]}\n\n{resposta["traceback"]}'
+    )
 
 
 
@@ -665,7 +731,7 @@ def run_scraper(data):
 
         scraper.clicar_re()
         scraper.fechar_popup()
-        #scraper.aceitar_cookies()
+        scraper.aceitar_cookies()
         scraper.clicar_cotacoes()
         scraper.clicar_residencial_sob_medida()
 

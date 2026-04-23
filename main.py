@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from scraper2 import run_scraper
+from scraper2 import run_scraper_com_timeout
 from imagem import ImageTextEditor
 
 app = FastAPI()
@@ -49,7 +49,7 @@ def home():
 
 @app.post("/run-scraper")
 def run_scraper_endpoint(data: ScraperInput):
-    resultado = run_scraper(data)
+    resultado = run_scraper_com_timeout(data, 240)
 
     return {
         "success": True,
