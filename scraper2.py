@@ -68,7 +68,6 @@ class BradescoScraper:
 
         self.page.wait_for_timeout(10000)
         print("7 - Esperou 10 segundos após login")
-        sleep(245)
 
     def clicar_re(self) -> None:
         if not self.page:
