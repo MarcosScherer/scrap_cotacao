@@ -109,15 +109,20 @@ class BradescoScraper:
         if not self.page:
             raise RuntimeError("A página não foi iniciada. Chame start() antes.")
 
-        botao = self.page.locator("button#adopt-accept-all-button")
-
         print("62 - Tentando aceitar cookies")
-        botao.wait_for(state="visible", timeout=15000)
-        botao.scroll_into_view_if_needed()
-        botao.click(force=True)
 
-        print("63 - Cookies aceitos")
-        self.page.wait_for_timeout(2000)
+        try:
+            botao = self.page.locator("button#adopt-accept-all-button")
+            botao.wait_for(state="visible", timeout=5000)
+            botao.scroll_into_view_if_needed()
+            botao.click(force=True)
+
+            print("63 - Cookies aceitos")
+            self.page.wait_for_timeout(2000)
+
+        except Exception:
+            print("63 - Banner de cookies não apareceu ou não foi possível clicar. Seguindo o fluxo...")
+            pass
         
 
     def clicar_cotacoes(self) -> None:
