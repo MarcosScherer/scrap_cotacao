@@ -173,7 +173,7 @@ class BradescoScraper:
 
         print(f"16 - Tentando selecionar tipo de imóvel: {tipo}")
 
-        if tipo_normalizado == "casa":
+        if tipo_normalizado == "casa" or tipo_normalizado == "casa_em_condomínio":
             alvo = frame.locator("label[for='formCotacao:ITipoImovel:0']")
         elif tipo_normalizado == "apartamento":
             alvo = frame.locator("label[for='formCotacao:ITipoImovel:1']")
@@ -747,14 +747,16 @@ def run_scraper(data):
         scraper.selecionar_tipo_imovel(data.tipo_imovel)
         scraper.selecionar_tipo_residencia(data.tipo_residencia)
 
-        if data.tipo_imovel.strip().lower() == "casa":
-            if not data.casa_em_condominio:
-                raise ValueError("Para tipo_imovel='casa', informe casa_em_condominio.")
-            scraper.selecionar_casa_em_condominio(data.casa_em_condominio)
+        if data.tipo_imovel.strip().lower() == "casa_em_condomínio":
+            #if not data.casa_em_condominio:
+            #    raise ValueError("Para tipo_imovel='casa', informe casa_em_condominio.")
+            scraper.selecionar_casa_em_condominio("sim")
+        elif data.tipo_imovel.strip().lower() == "casa":
+            scraper.selecionar_casa_em_condominio("nao")
         else:
-            if not data.tipo_apartamento:
-                raise ValueError("Para imóvel diferente de casa, informe tipo_apartamento.")
-            scraper.selecionar_tipo_apartamento(data.tipo_apartamento)
+            #if not data.tipo_apartamento:
+            #    raise ValueError("Para imóvel diferente de casa, informe tipo_apartamento.")
+            scraper.selecionar_tipo_apartamento("APARTAMENTO (PAVIMENTO SUPERIOR)")
 
         scraper.selecionar_tipo_cliente(data.tipo_cliente)
         scraper.clicar_continuar()
